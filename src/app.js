@@ -1,5 +1,6 @@
 import express from "express";
 import searchRoutes from "./routes/searchRoutes.js";
+import { searchFlights } from "./controllers/searchController.js";
 const app = express();
 
 app.use(express.json());

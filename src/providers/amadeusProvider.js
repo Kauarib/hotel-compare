@@ -83,7 +83,18 @@ async function getHotelOffers({ hotelIds, checkin, checkout, guests }) {
 
   return res.data?.data ?? [];
 }
-
+async function getflightOffers({origin, destination, departureDate, returnDate,adults}) {
+  const res = await amadeusGet("/v2/shopping/flight-offers",{
+    originLocationCode: origin,
+    destinationLocationCode: destination,
+    departureDate,
+    returnDate,
+    adults,
+    currencyCode: "BRL"
+  })
+  return res.data?.data ?? [];
+  
+}
 function normalize(items) {
   return items
     .map((item) => {
@@ -153,7 +164,23 @@ export const amadeusProvider = {
       }
     }
 
+
     return normalize(results);
   },
-};
+  async searchFlights({originLocationCode, destinationLocationCode, departureDate, returnDate,adults}){
+    const data = await getflightOffers({origin: originLocationCode, destination: destinationLocationCode, departureDate, returnDate,adults});
+    if (!data.length) return [];
 
+    const chunks = chunkArray(data.slice(0, 30), 5); // 5 por requisição
+    const results = [];
+    for (const ids of chunks) {
+      try {
+        const data = await getflightOffers({origin: originLocationCode, destination: destinationLocationCode, departureDate, returnDate,adults});
+        results.push(...data);
+      } catch (e) {
+        console.error("Flight-offers chunk failed:", e.message); 
+      }
+    }
+    return results;
+  }
+}
